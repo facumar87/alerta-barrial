@@ -10,6 +10,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Supabase Client Library -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Estilos Personales -->
     <link rel="stylesheet" href="style.css">
 </head>
@@ -185,6 +187,24 @@
             <div id="incidents-list" class="flex-1 overflow-y-auto p-3 space-y-2.5">
                 <!-- Se inyecta dinámicamente con JS -->
             </div>
+
+            <!-- ESPACIO DE COMERCIOS / AUSPICIO BARRIAL (FINANCIAMIENTO FUTURO) -->
+            <div class="p-3 bg-slate-950 border-t border-slate-800 text-center space-y-1.5">
+                <div class="flex items-center justify-between text-[10px] text-slate-400 px-1">
+                    <span class="font-bold text-amber-400"><i class="fa-solid fa-store mr-1"></i> Comercios Amigos</span>
+                    <span class="text-[9px] bg-slate-900 px-1.5 py-0.5 rounded text-slate-500">Auspiciantes</span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-left">
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 text-[10px] space-y-0.5 hover:border-amber-500/50 transition cursor-pointer" onclick="alert('¿Tenés un comercio en González Catán y querés auspiciar la red?\n\nComunicate al WhatsApp del administrador para sumar tu local.')">
+                        <p class="font-bold text-white truncate"><i class="fa-solid fa-utensils text-amber-500 mr-1"></i> Panadería El Sol</p>
+                        <p class="text-slate-400 text-[9px]">Simoni y Equiza • Desc. Vecinos</p>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-2 text-[10px] space-y-0.5 hover:border-amber-500/50 transition cursor-pointer" onclick="alert('¿Tenés un comercio en González Catán y querés auspiciar la red?\n\nComunicate al WhatsApp del administrador para sumar tu local.')">
+                        <p class="font-bold text-white truncate"><i class="fa-solid fa-wrench text-amber-500 mr-1"></i> Ferretería Catán</p>
+                        <p class="text-slate-400 text-[9px]">Av. Equiza 4500 • Abierto</p>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- MAPA DEL BARRIO -->
@@ -269,12 +289,11 @@
             </div>
 
             <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-                ¿Tenés alguna idea para mejorar la aplicación o encontraste un error? Dejanos tu comentario para seguir mejorando la red del barrio.
+                ¿Tenés alguna idea para mejorar la aplicación o querés sumar tu comercio local como auspiciante? Dejanos tu comentario.
             </p>
 
-            <!-- Enviar directo por WhatsApp -->
-            <a href="https://wa.me/5491123456789?text=Hola%20Facu,%20tengo%20una%20sugerencia%20para%20Alerta%20Barrial:" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mb-3 shadow-lg shadow-emerald-600/20">
-                <i class="fa-brands fa-whatsapp text-base"></i> Enviar sugerencia por WhatsApp
+            <a href="https://wa.me/5491123456789?text=Hola%20Facu,%20quiero%20sumar%20mi%20comercio%20o%20enviar%20una%20sugerencia%20a%20Alerta%20Barrial:" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mb-3 shadow-lg shadow-emerald-600/20">
+                <i class="fa-brands fa-whatsapp text-base"></i> Contactar por WhatsApp
             </a>
 
             <div class="relative flex py-2 items-center">
@@ -283,10 +302,9 @@
                 <div class="flex-grow border-t border-slate-800"></div>
             </div>
 
-            <!-- Formulario de mensaje local -->
             <form onsubmit="submitFeedback(event)" class="space-y-3 mt-2">
                 <div>
-                    <textarea id="feedback-text" rows="3" required placeholder="Escribí tu sugerencia o comentario aquí..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
+                    <textarea id="feedback-text" rows="3" required placeholder="Escribí tu mensaje o consulta aquí..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
                 </div>
                 <div class="flex justify-end gap-2">
                     <button type="button" onclick="closeModal('feedback-modal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-1.5 rounded-xl text-xs">Cancelar</button>
