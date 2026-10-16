@@ -15,28 +15,39 @@
 </head>
 <body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col font-sans">
 
-    <!-- PANTALLA DE ACCESO / REGISTRO RÁPIDO VECINAL -->
+    <!-- BANNER DE AVISO OFICIAL DEL ADMINISTRADOR -->
+    <div id="admin-banner" class="bg-gradient-to-r from-amber-600 to-amber-500 text-slate-950 px-4 py-2 text-xs font-bold flex items-center justify-between shadow-md hidden">
+        <div class="flex items-center gap-2 overflow-hidden">
+            <span class="bg-slate-950 text-amber-400 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider shrink-0">Aviso Oficial</span>
+            <span id="banner-text" class="truncate"></span>
+        </div>
+        <button id="btn-delete-banner" onclick="deleteAdminAnnouncement()" class="hidden text-slate-950 hover:text-rose-950 ml-2 text-sm" title="Quitar aviso">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- PANTALLA DE ACCESO / REGISTRO CON VALIDACIÓN DE CELULAR -->
     <div id="auth-screen" class="fixed inset-0 z-50 bg-slate-950/95 flex items-center justify-center p-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="text-center mb-6">
                 <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-amber-500/10 text-amber-500 mb-2">
-                    <i class="fa-solid fa-house-chimney-crack text-2xl"></i>
+                    <i class="fa-solid fa-shield-halved text-2xl"></i>
                 </div>
                 <h1 class="text-xl font-bold tracking-tight text-white">Alerta Barrial</h1>
                 <p class="text-xs text-slate-400 mt-0.5">Red de prevención y cuidado entre vecinos de la zona</p>
             </div>
 
             <!-- Tabs Login / Registro -->
-            <div class="flex border-b border-slate-800 mb-4">
+            <div id="auth-tabs" class="flex border-b border-slate-800 mb-4">
                 <button id="tab-btn-login" onclick="switchAuthTab('login')" class="flex-1 pb-2 text-xs font-semibold text-amber-500 border-b-2 border-amber-500">Ingresar</button>
                 <button id="tab-btn-register" onclick="switchAuthTab('register')" class="flex-1 pb-2 text-xs font-semibold text-slate-400 hover:text-slate-200">Registrarme</button>
             </div>
 
-            <!-- LOGIN -->
+            <!-- FORMULARIO DE INGRESO -->
             <form id="form-login" onsubmit="handleLogin(event)" class="space-y-3">
                 <div>
-                    <label class="block text-xs font-medium text-slate-300 mb-1">WhatsApp o Email</label>
-                    <input type="text" id="login-user" required placeholder="11 1234 5678" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <label class="block text-xs font-medium text-slate-300 mb-1">Celular / WhatsApp registrado</label>
+                    <input type="tel" id="login-phone" required placeholder="Ej: 1112345678" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-300 mb-1">Contraseña</label>
@@ -47,7 +58,7 @@
                 </button>
             </form>
 
-            <!-- REGISTRO -->
+            <!-- FORMULARIO DE REGISTRO CON CELULAR -->
             <form id="form-register" onsubmit="handleRegister(event)" class="space-y-3 hidden">
                 <div>
                     <label class="block text-[11px] font-medium text-slate-300 mb-1">Nombre y Apellido *</label>
@@ -55,33 +66,56 @@
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Celular / WhatsApp *</label>
-                    <input type="tel" id="reg-phone" required placeholder="11 1234 5678" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
-                    <span class="text-[10px] text-slate-500">Para verificar que sos vecino real del barrio.</span>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Número de Celular *</label>
+                    <input type="tel" id="reg-phone" required placeholder="Ej: 1112345678" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
+                    <span class="text-[10px] text-slate-500">10 dígitos sin 0 y sin 15. Te enviaremos un código.</span>
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Esquina o Calle donde vivís *</label>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Esquina o Calle del barrio *</label>
                     <input type="text" id="reg-street" required placeholder="Ej: Simoni y Cepeda" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
 
                 <div>
-                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Contraseña *</label>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Crear Contraseña *</label>
                     <input type="password" id="reg-password" required placeholder="Mínimo 6 caracteres" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-amber-500">
                 </div>
 
                 <button type="submit" class="w-full bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/20 mt-2">
-                    <i class="fa-solid fa-user-check"></i> Unirme a la Red del Barrio
+                    <i class="fa-solid fa-mobile-screen-button"></i> Enviar Código de Verificación
                 </button>
             </form>
 
-            <div class="relative flex py-3 items-center">
+            <!-- PANTALLA DE VALIDACIÓN DE CÓDIGO SMS/OTP -->
+            <div id="otp-section" class="space-y-4 hidden">
+                <div class="text-center">
+                    <div class="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-500/10 text-emerald-400 mb-1">
+                        <i class="fa-solid fa-comment-sms text-lg"></i>
+                    </div>
+                    <h3 class="text-sm font-bold text-white">Validación de Celular</h3>
+                    <p class="text-[11px] text-slate-400 mt-1">Ingresá el código de 4 dígitos enviado a tu número de teléfono.</p>
+                </div>
+
+                <div>
+                    <input type="text" id="otp-input" maxlength="4" placeholder="••••" class="w-full text-center tracking-widest text-xl font-bold bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-amber-400 focus:outline-none focus:border-amber-500">
+                </div>
+
+                <button onclick="verifyOTP()" class="w-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold py-2.5 rounded-xl text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-circle-check"></i> Verificar y Confirmar Registro
+                </button>
+
+                <button onclick="cancelOTP()" class="w-full text-slate-400 hover:text-slate-200 text-[11px] text-center block pt-1">
+                    &larr; Volver a cambiar número
+                </button>
+            </div>
+
+            <div id="auth-divider" class="relative flex py-3 items-center">
                 <div class="flex-grow border-t border-slate-800"></div>
                 <span class="flex-shrink mx-3 text-slate-500 text-[10px] uppercase tracking-wider">O también</span>
                 <div class="flex-grow border-t border-slate-800"></div>
             </div>
 
-            <button onclick="loginAsGuest()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 rounded-xl text-xs transition border border-slate-700 flex items-center justify-center gap-2">
+            <button id="btn-guest" onclick="loginAsGuest()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium py-2 rounded-xl text-xs transition border border-slate-700 flex items-center justify-center gap-2">
                 <i class="fa-solid fa-eye text-cyan-400"></i> Ver Mapa sin Registrarme (Solo lectura)
             </button>
         </div>
@@ -102,9 +136,19 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            <!-- BOTÓN ALERTA RÁPIDA -->
+            <!-- BOTÓN AVISO DE ADMINISTRADOR (EXCLUSIVO ADMIN) -->
+            <button id="btn-admin-announcement" onclick="openModal('announcement-modal')" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 px-3 py-2 rounded-xl text-xs font-bold items-center gap-1.5 transition">
+                <i class="fa-solid fa-bullhorn"></i> Crear Aviso Vecinal
+            </button>
+
+            <!-- BOTÓN BUZÓN DE SUGERENCIAS -->
+            <button onclick="openModal('feedback-modal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 px-3 py-2 rounded-xl text-xs font-medium flex items-center gap-1.5 transition" title="Sugerencias">
+                <i class="fa-solid fa-comment-dots text-amber-400"></i> Sugerencias
+            </button>
+
+            <!-- BOTÓN ALERTA RÁPIDA VECINO -->
             <button onclick="openModal('alert-modal')" class="bg-rose-600 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-2 shadow-lg shadow-rose-600/30 transition animate-pulse">
-                <i class="fa-solid fa-bullhorn text-sm"></i> Publicar Alerta
+                <i class="fa-solid fa-triangle-exclamation text-sm"></i> Publicar Alerta
             </button>
 
             <!-- ESTADO DE USUARIO -->
@@ -139,7 +183,7 @@
 
             <!-- Listado de Novedades del Barrio -->
             <div id="incidents-list" class="flex-1 overflow-y-auto p-3 space-y-2.5">
-                <!-- Se inyecta con JS -->
+                <!-- Se inyecta dinámicamente con JS -->
             </div>
         </section>
 
@@ -150,7 +194,7 @@
 
     </main>
 
-    <!-- MODAL PARA PUBLICAR ALERTA -->
+    <!-- MODAL PARA PUBLICAR ALERTA VECINAL -->
     <div id="alert-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
         <div class="bg-slate-900 border border-amber-500/30 rounded-2xl max-w-lg w-full p-5 shadow-2xl max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-2">
@@ -185,6 +229,68 @@
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal('alert-modal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-1.5 rounded-xl text-xs">Cancelar</button>
                     <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-1.5 rounded-xl text-xs shadow-lg shadow-amber-500/20">Avisar a los Vecinos</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL PARA PUBLICAR AVISO OFICIAL DE ADMINISTRADOR -->
+    <div id="announcement-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/40 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-scroll"></i> Publicar Aviso General del Barrio
+                </h3>
+                <button onclick="closeModal('announcement-modal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <form onsubmit="submitAdminAnnouncement(event)" class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-medium text-slate-300 mb-1">Mensaje para la marquesina *</label>
+                    <textarea id="announcement-text" rows="3" required placeholder="Ej: Cuidado vecinos, corte de luz programado sobre Simoni..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
+                </div>
+
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('announcement-modal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-1.5 rounded-xl text-xs">Cancelar</button>
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-5 py-1.5 rounded-xl text-xs shadow-lg shadow-amber-500/20">Fijar Aviso Arriba</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE SUGERENCIAS Y CONTACTO -->
+    <div id="feedback-modal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-3 border-b border-slate-800 pb-2">
+                <h3 class="font-bold text-sm text-amber-400 flex items-center gap-2">
+                    <i class="fa-solid fa-lightbulb"></i> Sugerencias y Comentarios
+                </h3>
+                <button onclick="closeModal('feedback-modal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+
+            <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                ¿Tenés alguna idea para mejorar la aplicación o encontraste un error? Dejanos tu comentario para seguir mejorando la red del barrio.
+            </p>
+
+            <!-- Enviar directo por WhatsApp -->
+            <a href="https://wa.me/5491123456789?text=Hola%20Facu,%20tengo%20una%20sugerencia%20para%20Alerta%20Barrial:" target="_blank" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition mb-3 shadow-lg shadow-emerald-600/20">
+                <i class="fa-brands fa-whatsapp text-base"></i> Enviar sugerencia por WhatsApp
+            </a>
+
+            <div class="relative flex py-2 items-center">
+                <div class="flex-grow border-t border-slate-800"></div>
+                <span class="flex-shrink mx-2 text-slate-600 text-[10px] uppercase">o dejar mensaje web</span>
+                <div class="flex-grow border-t border-slate-800"></div>
+            </div>
+
+            <!-- Formulario de mensaje local -->
+            <form onsubmit="submitFeedback(event)" class="space-y-3 mt-2">
+                <div>
+                    <textarea id="feedback-text" rows="3" required placeholder="Escribí tu sugerencia o comentario aquí..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-amber-500"></textarea>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal('feedback-modal')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-1.5 rounded-xl text-xs">Cancelar</button>
+                    <button type="submit" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold px-4 py-1.5 rounded-xl text-xs shadow-md">Enviar Mensaje</button>
                 </div>
             </form>
         </div>
