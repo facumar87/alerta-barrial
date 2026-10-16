@@ -1,58 +1,28 @@
 // Coordenadas fijas por defecto para el centro del barrio (González Catán)
 const NEIGHBORHOOD_CENTER = [-34.7642, -58.6211];
 
-// 👑 TU NÚMERO DE ADMINISTRADOR (Reemplazá esto por tu celular real de 10 dígitos, sin 0 y sin 15)
+// 👑 TU NÚMERO DE ADMINISTRADOR (Reemplazá por tu celular real de 10 dígitos, sin 0 y sin 15)
 const ADMIN_PHONE = "1168139081"; 
 
-// Alertas iniciales de prueba en el barrio
-let incidents = [
-    {
-        id: 1,
-        category: "robo",
-        tipo: "Robo / Arrebato",
-        direccion: "Simoni y Cepeda",
-        lat: -34.7645,
-        lng: -58.6215,
-        desc: "Motochorro sin casco arrebató mochila en la esquina. Escapó hacia el fondo.",
-        fecha: "2026-10-15 11:30",
-        autor: "Facundo"
-    },
-    {
-        id: 2,
-        category: "sospecha",
-        tipo: "Actitud Sospechosa",
-        direccion: "Barros Pazos y Puerto Argentino",
-        lat: -34.7620,
-        lng: -58.6190,
-        desc: "Dos sujetos mirando hacia el interior de las casas estacionadas.",
-        fecha: "2026-10-15 09:15",
-        autor: "Vecino_Simoni"
-    },
-    {
-        id: 3,
-        category: "acoso",
-        tipo: "Acoso / Llegué Bien",
-        direccion: "Av. José Equiza",
-        lat: -34.7660,
-        lng: -58.6230,
-        desc: "Zona muy oscura por lámparas quemadas. Autos tocando bocina a chicas que caminan.",
-        fecha: "2026-10-14 21:00",
-        autor: "Laura"
-    }
-];
+// 🔑 CONFIGURACIÓN DE SUPABASE (Pegá acá tus credenciales de supabase.com)
+const SUPABASE_URL = "https://tiesybvhvjyknksvyabr.supabase.co/rest/v1/";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRpZXN5YnZodmp5a25rc3Z5YWJyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTIxMjY5MjMsImV4cCI6MjEwNzcwMjkyM30.dHleKZMS5RciUgcu-ErF3lTywaPBrcTxN3jUiAcJaQ4";
 
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+let incidents = [];
 let currentUser = null;
 let pendingUser = null;
 let generatedCode = null;
-let currentAnnouncement = "⚠️ Mantengamos la atención en la zona de Simoni y Cepeda. Reporten cualquier movimiento extraño.";
+let currentAnnouncement = "⚠️ Cargando avisos oficiales del barrio...";
 
 let map, markersLayer;
 let currentCategoryFilter = 'all';
 
 document.addEventListener("DOMContentLoaded", () => {
     initMap();
-    renderIncidents();
-    renderAnnouncement();
+    loadDataFromCloud();
+    setupRealtimeSubscription();
 });
 
 // Inicializar Mapa centrado en el barrio
@@ -65,7 +35,53 @@ function initMap() {
     }).addTo(map);
 
     markersLayer = L.layerGroup().addTo(map);
-    updateMapMarkers();
+}
+
+// CARGAR DATOS DESDE SUPABASE (Nube)
+async function loadDataFromCloud() {
+    try {
+        // Cargar alertas
+        const { data: cloudIncidents, error: incError } = await supabaseClient
+            .from('incidents')
+            .select('*')
+            .order('id', { ascending: false });
+
+        if (incError) console.error("Error cargando alertas:", incError);
+        else incidents = cloudIncidents || [];
+
+        // Cargar anuncio oficial
+        const { data: cloudSettings, error: setلError } = await supabaseClient
+            .from('app_settings')
+            .select('*')
+            .eq('key', 'announcement')
+            .single();
+
+        if (!setلError && cloudSettings) {
+            currentAnnouncement = cloudSettings.value;
+        }
+
+        renderIncidents();
+        renderAnnouncement();
+    } catch (err) {
+        console.error("Error de conexión con Supabase:", err);
+    }
+}
+
+// SINCRONIZACIÓN EN TIEMPO REAL (Realtime WebSockets)
+function setupRealtimeSubscription() {
+    supabaseClient
+        .channel('public:incidents')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, payload => {
+            loadDataFromCloud(); // Recarga automática al haber cambios en la nube
+        })
+        .subscribe();
+
+    supabaseClient
+        .channel('public:app_settings')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'app_settings' }, payload => {
+            loadDataFromCloud();
+        })
+        .subscribe();
 }
 
 // Control de Sesión
@@ -102,10 +118,8 @@ function handleLogin(e) {
     document.getElementById('user-status-label').innerText = currentUser.username;
     document.getElementById('auth-screen').classList.add('hidden');
     updateAdminControls();
-    renderIncidents();
 }
 
-// REGISTRO CON VALIDACIÓN ESTRICTA DE CELULAR (10 dígitos: Sin 0 y Sin 15)
 function handleRegister(e) {
     e.preventDefault();
     const name = document.getElementById('reg-fullname').value.trim();
@@ -147,7 +161,6 @@ function verifyOTP() {
         document.getElementById('user-status-label').innerText = currentUser.username;
         document.getElementById('auth-screen').classList.add('hidden');
         updateAdminControls();
-        renderIncidents();
     } else {
         alert("❌ El código ingresado es incorrecto. Verificalo e intentá de nuevo.");
     }
@@ -167,7 +180,6 @@ function loginAsGuest() {
     document.getElementById('user-status-label').innerText = 'Invitado';
     document.getElementById('auth-screen').classList.add('hidden');
     updateAdminControls();
-    renderIncidents();
 }
 
 function logout() {
@@ -175,14 +187,11 @@ function logout() {
     document.getElementById('auth-screen').classList.remove('hidden');
     cancelOTP();
     updateAdminControls();
-    renderIncidents();
 }
 
-// Habilitar controles ÚNICAMENTE si el usuario es el Administrador (ADMIN_PHONE)
 function updateAdminControls() {
     const btnAnnounce = document.getElementById('btn-admin-announcement');
     const btnDeleteBanner = document.getElementById('btn-delete-banner');
-
     const isAdmin = currentUser && currentUser.phone === ADMIN_PHONE;
 
     if (isAdmin) {
@@ -200,7 +209,6 @@ function updateAdminControls() {
     }
 }
 
-// Modales
 function openModal(id) {
     if (id === 'alert-modal' && !currentUser) {
         alert('Tenés que ingresar o registrarte con celular verificado para publicar una alerta vecinal.');
@@ -220,7 +228,7 @@ function closeModal(id) {
     document.getElementById(id).classList.remove('flex');
 }
 
-// FUNCIONES DE AVISO OFICIAL DE ADMINISTRADOR
+// GESTIÓN DE AVISO OFICIAL (Guardado en Supabase)
 function renderAnnouncement() {
     const banner = document.getElementById('admin-banner');
     const bannerText = document.getElementById('banner-text');
@@ -233,44 +241,54 @@ function renderAnnouncement() {
     }
 }
 
-function submitAdminAnnouncement(e) {
+async function submitAdminAnnouncement(e) {
     e.preventDefault();
-    if (!currentUser || currentUser.phone !== ADMIN_PHONE) {
-        alert("Acción no autorizada.");
-        return;
-    }
+    if (!currentUser || currentUser.phone !== ADMIN_PHONE) return;
 
     const text = document.getElementById('announcement-text').value.trim();
     if (!text) return;
 
-    currentAnnouncement = text;
-    renderAnnouncement();
-    closeModal('announcement-modal');
-    document.getElementById('announcement-text').value = '';
-    alert("📢 Aviso oficial fijado con éxito.");
-}
+    const { error } = await supabaseClient
+        .from('app_settings')
+        update({ value: text })
+        .eq('key', 'announcement');
 
-function deleteAdminAnnouncement() {
-    if (!currentUser || currentUser.phone !== ADMIN_PHONE) return;
-
-    if (confirm("¿Querés quitar el aviso oficial de la app?")) {
-        currentAnnouncement = "";
+    if (error) {
+        alert("Error al actualizar el aviso en la nube.");
+        console.error(error);
+    } else {
+        currentAnnouncement = text;
         renderAnnouncement();
+        closeModal('announcement-modal');
+        document.getElementById('announcement-text').value = '';
+        alert("📢 Aviso oficial actualizado y sincronizado para todo el barrio.");
     }
 }
 
-// ENVIAR SUGERENCIA DESDE EL FORMULARIO WEB
+async function deleteAdminAnnouncement() {
+    if (!currentUser || currentUser.phone !== ADMIN_PHONE) return;
+
+    if (confirm("¿Querés quitar el aviso oficial de la app?")) {
+        const { error } = await supabaseClient
+            .from('app_settings')
+            .update({ value: "" })
+            .eq('key', 'announcement');
+
+        if (!error) {
+            currentAnnouncement = "";
+            renderAnnouncement();
+        }
+    }
+}
+
 function submitFeedback(e) {
     e.preventDefault();
-    const text = document.getElementById('feedback-text').value.trim();
-    if (!text) return;
-
     alert("¡Muchas gracias por tu sugerencia! La recibimos correctamente.");
     closeModal('feedback-modal');
     document.getElementById('feedback-text').value = '';
 }
 
-// PUBLICACIÓN DE ALERTAS VECINALES CON VERIFICACIÓN DE CALLES (Nominatim)
+// PUBLICAR ALERTA EN SUPABASE (Nube en Tiempo Real)
 async function submitAlert(e) {
     e.preventDefault();
     
@@ -315,13 +333,18 @@ async function submitAlert(e) {
             autor: currentUser ? currentUser.username : 'Vecino'
         };
 
-        incidents.unshift(newAlert);
-        closeModal('alert-modal');
-        document.getElementById('alert-form').reset();
-        renderIncidents();
-        map.setView([realLat, realLng], 17, { animate: true });
+        // Guardar en Supabase
+        const { error } = await supabaseClient.from('incidents').insert([newAlert]);
 
-        alert("✅ ¡Alerta publicada con éxito en la posición exacta del mapa!");
+        if (error) {
+            console.error("Error guardando en Supabase:", error);
+            alert("No se pudo guardar la alerta en la base de datos.");
+        } else {
+            closeModal('alert-modal');
+            document.getElementById('alert-form').reset();
+            map.setView([realLat, realLng], 17, { animate: true });
+            alert("✅ ¡Alerta publicada y sincronizada con el mapa de todo el barrio!");
+        }
 
     } catch (error) {
         console.error("Error al validar dirección:", error);
@@ -332,7 +355,6 @@ async function submitAlert(e) {
     }
 }
 
-// Filtros y Renderizado
 function setCategoryFilter(cat) {
     currentCategoryFilter = cat;
     ['all', 'robo', 'sospecha', 'acoso'].forEach(c => {
@@ -381,7 +403,6 @@ function renderIncidentsList(list) {
             icon = 'fa-person-walking-arrow-right text-purple-400';
         }
 
-        // Solo el Admin puede borrar alertas
         let deleteBtn = '';
         const isAdmin = currentUser && currentUser.phone === ADMIN_PHONE;
         if (isAdmin) {
@@ -410,11 +431,17 @@ function renderIncidentsList(list) {
     });
 }
 
-function deleteIncident(id) {
-    if (confirm("¿Estás seguro de que querés eliminar esta alerta del mapa?")) {
-        incidents = incidents.filter(inc => inc.id !== id);
-        renderIncidents();
-        alert("Alerta eliminada con éxito.");
+// BORRAR ALERTA DE SUPABASE (Nube)
+async function deleteIncident(id) {
+    if (confirm("¿Estás seguro de que querés eliminar esta alerta de la base de datos?")) {
+        const { error } = await supabaseClient.from('incidents').delete().eq('id', id);
+
+        if (error) {
+            alert("No se pudo eliminar la alerta.");
+            console.error(error);
+        } else {
+            alert("Alerta eliminada con éxito.");
+        }
     }
 }
 
