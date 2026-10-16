@@ -14,7 +14,7 @@ let incidents = [];
 let currentUser = null;
 let pendingUser = null;
 let generatedCode = null;
-let currentAnnouncement = "⚠️ Cargando avisos oficiales del barrio...";
+let currentAnnouncement = "⚠️ Mantengamos la atención en la zona. Reporten cualquier movimiento extraño.";
 
 let map, markersLayer;
 let currentCategoryFilter = 'all';
@@ -50,13 +50,13 @@ async function loadDataFromCloud() {
         else incidents = cloudIncidents || [];
 
         // Cargar anuncio oficial
-        const { data: cloudSettings, error: setلError } = await supabaseClient
+        const { data: cloudSettings, error: setError } = await supabaseClient
             .from('app_settings')
             .select('*')
             .eq('key', 'announcement')
             .single();
 
-        if (!setلError && cloudSettings) {
+        if (!setError && cloudSettings) {
             currentAnnouncement = cloudSettings.value;
         }
 
@@ -72,7 +72,7 @@ function setupRealtimeSubscription() {
     supabaseClient
         .channel('public:incidents')
         .on('postgres_changes', { event: '*', schema: 'public', table: 'incidents' }, payload => {
-            loadDataFromCloud(); // Recarga automática al haber cambios en la nube
+            loadDataFromCloud();
         })
         .subscribe();
 
@@ -250,7 +250,7 @@ async function submitAdminAnnouncement(e) {
 
     const { error } = await supabaseClient
         .from('app_settings')
-        update({ value: text })
+        .update({ value: text })
         .eq('key', 'announcement');
 
     if (error) {
