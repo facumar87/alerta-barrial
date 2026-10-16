@@ -2,7 +2,7 @@
 const NEIGHBORHOOD_CENTER = [-34.7642, -58.6211];
 
 // 👑 TU NÚMERO DE ADMINISTRADOR (Reemplazá esto por tu celular real de 10 dígitos, sin 0 y sin 15)
-const ADMIN_PHONE = "1123456789"; 
+const ADMIN_PHONE = "1168139081"; 
 
 // Alertas iniciales de prueba en el barrio
 let incidents = [
